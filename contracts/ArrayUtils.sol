@@ -13,9 +13,9 @@ library ArrayUtils {
   {
       if (self.addressToIndexMapping[value]!=0)
           return false; // it already exists
-      self.addressToIndexMapping[value] = self.numberOfValues+1; // place it at the end. We are a 1 indexed list
-      self.indexToAddressMapping[self.numberOfValues+1] = value; // say that its at the end
-      self.numberOfValues++; // the end is now 1 bigger
+      self.numberOfValues++; // the end is now 1 bigger. Doing this before the next two lines immitates doing a +1 to them
+      self.addressToIndexMapping[value] = self.numberOfValues; // place it at the end. We are a 1 indexed list
+      self.indexToAddressMapping[self.numberOfValues] = value; // say that its at the end
       return true;
 
   }
@@ -23,14 +23,12 @@ library ArrayUtils {
   function remove(ArrayList storage self, address value)
       returns (bool)
   {
-      if (self.addressToIndexMapping[value]==0)
+      uint abouttoempty = self.addressToIndexMapping[value];// Index position with empty place
+      if (abouttoempty==0)
           return false; // cant remove what don't exist
-      uint emptyspot = self.addressToIndexMapping[value]; // Index position with empty place
-      address lastaddr = self.indexToAddressMapping[self.numberOfValues]; // Last value stored
-      self.indexToAddressMapping[emptyspot]=lastaddr; // Move last value stored to empty place
+      self.indexToAddressMapping[abouttoempty]=self.indexToAddressMapping[self.numberOfValues]; // Move last value stored to empty place
       self.numberOfValues--; // drop duplicatd last value
       delete self.addressToIndexMapping[value]; // remove removed value actually
-      // delete self.indexToAddressMapping[self.addressToIndexMapping[value]];
       return true;
   }
 
@@ -43,8 +41,9 @@ library ArrayUtils {
   function indexOf(ArrayList storage self, address value)
       returns (uint)
   {
-      if (self.addressToIndexMapping[value]==0)
+      uint index = self.addressToIndexMapping[value];
+      if (index==0)
           return uint(-1);
-      return self.addressToIndexMapping[value];
+      return index;
   }
 }
