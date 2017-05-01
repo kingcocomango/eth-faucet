@@ -3,7 +3,6 @@ pragma solidity ^0.4.8;
 library ArrayUtils {
 
   struct ArrayList {
-      mapping(address => bool) addressToExistsMapping;
       mapping(address => uint) addressToIndexMapping;
       mapping(uint => address) indexToAddressMapping;
       uint numberOfValues;
@@ -12,12 +11,11 @@ library ArrayUtils {
   function insert(ArrayList storage self, address value)
       returns (bool)
   {
-      if (self.addressToExistsMapping[value])
+      if (self.addressToIndexMapping[value]!=0)
           return false; // it already exists
-      self.addressToExistsMapping[value] = true; // it will exist
-      self.addressToIndexMapping[value] = self.numberOfValues; // place it at the end
-      self.indexToAddressMapping[self.numberOfValues] = value; // say that its at the end
-      self.numberOfValues++ // the end is now 1 bigger
+      self.addressToIndexMapping[value] = self.numberOfValues+1; // place it at the end. We are a 1 indexed list
+      self.indexToAddressMapping[self.numberOfValues+1] = value; // say that its at the end
+      self.numberOfValues++; // the end is now 1 bigger
       return true;
 
   }
@@ -25,12 +23,11 @@ library ArrayUtils {
   function remove(ArrayList storage self, address value)
       returns (bool)
   {
-      if (!self.addressToExistsMapping[value])
+      if (self.addressToIndexMapping[value]==0)
           return false; // cant remove what don't exist
-      self.addressToExistsMapping[value] = false; // it wont exist
-      emptyspot = self.addressToIndexMapping[value]; // Index position with empty place
-      lastaddr = self.indexToAddressMapping[self.numberOfValues-1]; // Last value stored
-      self.indexToAddressMapping[emptyspot]=lastaddr // Move last value stored to empty place
+      uint emptyspot = self.addressToIndexMapping[value]; // Index position with empty place
+      address lastaddr = self.indexToAddressMapping[self.numberOfValues]; // Last value stored
+      self.indexToAddressMapping[emptyspot]=lastaddr; // Move last value stored to empty place
       self.numberOfValues--; // drop duplicatd last value
       delete self.addressToIndexMapping[value]; // remove removed value actually
       // delete self.indexToAddressMapping[self.addressToIndexMapping[value]];
@@ -40,13 +37,13 @@ library ArrayUtils {
   function contains(ArrayList storage self, address value)
       returns (bool)
   {
-      return self.addressToExistsMapping[value];
+      return self.addressToIndexMapping[value]!=0;
   }
 
   function indexOf(ArrayList storage self, address value)
       returns (uint)
   {
-      if (!self.addressToExistsMapping[value])
+      if (self.addressToIndexMapping[value]==0)
           return uint(-1);
       return self.addressToIndexMapping[value];
   }
